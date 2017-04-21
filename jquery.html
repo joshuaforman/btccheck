@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ShapeShift Code Test</title>
+	<script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+	 <!-- JQuery CDN -->
+	<script
+		src="https://code.jquery.com/jquery-3.1.0.js"
+		integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="
+		crossorigin="anonymous">
+	</script>
+</head>
+<body>
+	<div>
+		Input amount of Bitcoin:
+		<input id='amount'></input>
+	</div>
+</body>
+<script>
+
+	$("#amount").blur(function() {
+		btc = $("#amount").val();
+
+		getPoloniexRates().then((resP) => {
+			const rateArray = [];
+			rateArray['ETH'] = resP.data.BTC_ETH.last;
+			rateArray['LTC'] = resP.data.BTC_LTC.last;
+			rateArray['DASH'] = resP.data.BTC_DASH.last;
+			console.log('rateArray: ', rateArray);
+		}).then(getBittrexRates()).then((resB) => {
+			console.log('in bitterx: ', resB);
+		})
+		.catch((err) => {
+			console.log('error: ', err);
+		});
+
+	});
+
+	getPoloniexRates = () => {
+		return axios.get('https://poloniex.com/public?command=returnTicker');
+	}
+
+	getBittrexRates = () => {
+		return axios.get('https://bittrex.com/api/v1.1/public/getmarkets');
+	}
+
+
+</script>
