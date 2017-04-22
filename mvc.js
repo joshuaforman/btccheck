@@ -77,7 +77,7 @@ function Controller(m) {
 			// calculate the gain for that altcoin and push a new object with info onto gains array
 			const newObj = {
 				altcoin: altcoin,
-				gain: Math.abs(m.rates.btce[altcoin] - m.rates.bittrex[altcoin])
+				gain: Math.abs(m.rates.rates[0][altcoin] - m.rates.rates[1][altcoin])
 			}
 			gains.push(newObj);
 		}
@@ -146,7 +146,6 @@ function Controller(m) {
 				btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
 				btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
 			}
-			console.log('bittrex', bittrex);
 			m.rates.rates.push(bittrex);
 			m.rates.rates.push(btce);
 
