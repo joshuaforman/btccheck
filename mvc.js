@@ -34,28 +34,48 @@ function View(c) {
 	});
 
 	// This is the function to calculate the gains made if you take the best exchange rate. It calls the controller to calculate the gains, and passes the data back to here, to update the view.
-	calculateGains = (altcoinRates) => {
-		console.log('in calcgains ', altcoinRates);
-		if (altcoinRates) {
-			// cycle through each of the altcoins being compared
-			// try {
-				// for (let altcoin of altcoinRates) {
-					// console.log(altcoin);
+	calculateGains = (rates, altcoins) => {
+		console.log('in calcgains ', rates[0]);
+		if (rates) {
+			// if rates were just calculated, they need to be shown on the screen, so pass them into this function
+			for (let altcoin of altcoins) {
+				for (let rate of rates) {
 					// set the values on the webpage
-					// $('#bittrex' + altcoin).html(m.rates.bittrex[altcoin]);
-					// $('#btce' + altcoin).html(m.rates.btce[altcoin]);
+					$('#' + rate.exchange + altcoin).html(rate[altcoin]);
+				}
+
+				// check for best rate and highlight. If rates are equal, do not highlight either
+				if (rates[0][altcoin] > rates[1][altcoin]) {
+					$('#' + rates[0].exchange + altcoin).css('color','orange');
+				} else if (rates[0][altcoin] < rates[1][altcoin]) {
+					$('#' + rates[1].exchange + altcoin).css('color','orange');
+				}
+			}
+
+/*
+			let exchanges = [];
+			for (let rate of rates) {
+				exchanges.push(rate.exchange);
+			}
+			console.log('exchanges: ', exchanges);
+
+			for (let exchange of exchanges) {
+				for (let altcoin of altcoins) {
+					console.log(exchange, altcoin, rates);
+					// set the values on the webpage
+					// $('#' + exchange + altcoin).html(altcoin.);
+					// $('#btce' + altcoin.altcoin).html(m.rates.btce[altcoin]);
 
 					// // check for best rate and highlight. If rates are equal, do not highlight either
 					// if (m.rates.btce[altcoin] > m.rates.bittrex[altcoin]) {
-					// 	$('#btce' + altcoin).css('color','orange');
+					// 	$('#btce' + altcoin.altcoin).css('color','orange');
 					// } else if (m.rates.btce[altcoin] < m.rates.bittrex[altcoin]) {
-					// 	$('#bittrex' + altcoin).css('color','orange');
-					// }
-				// }
-			// } catch(TypeError) {
-			// 	// ignore error
-			// }
+					// 	$('#bittrex' + altcoin.altcoin).css('color','orange');
+				}
+			}
+*/
 		}
+
 		gains = c.calculateGains();
 		for (let gain of gains) {
 			$('#gained' + gain.altcoin).html(round(gain.gain * $('#amount').val()));
@@ -117,8 +137,8 @@ function Controller(m) {
 			// m.rates['bittrex']={};
 			let bittrex = {};
 			let btce = {};
-			bittrex.altcoin = 'bittrex';
-			btce.altcoin='btce';
+			bittrex.exchange = 'bittrex';
+			btce.exchange ='btce';
 
 			// for each value, first check for status 200, signifying that the rate was properly returned. For each value, take the reciprocal so we can show how many of the altcoin can be exchanged for each bitcoin.
 			if (values[0].status == 200) {
@@ -150,7 +170,7 @@ function Controller(m) {
 			m.rates.rates.push(btce);
 
 			// need a callback to call calculateGains from View
-			callback(m.rates);
+			callback(m.rates.rates, m.altcoins.altcoins);
 		});
 	}
 }
