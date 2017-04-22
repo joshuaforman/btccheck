@@ -12,10 +12,7 @@
 	<link rel='stylesheet' type='text/css' href='jquery.css'>
 </head>
 <body>
-	<div>
-		Input amount of Bitcoin:
-		<input id='amount' value=20></input>
-	</div>
+
 	<div>
 		<h2>Exchange Rates</h2>
 		<p>The following is how many of each altcoin you can get for one bitcoin</p>
@@ -42,8 +39,32 @@
 				<td id='btceDASH' class='row'></td>
 			</tr>
 		</table>
+	</div>
+	<hr>
+	<div>
+		Please enter amount of Bitcoin you will exchange, and below will show how much more of the altcoin will be received from the highlighted exchange.
+		<br><br>
+		Input amount of Bitcoin:
+		<br>
+		<input id='amount' value=20></input>
+		<button id='calculateGain'>Calculate</button>
+	</div>
+	<br>
+	<div>
+		<table>
+			<tr class='row'>
+				<td class='row'>Amount Gained:</td>
+				<td id='gainedETH' class='row'></td>
+				<td id='gainedLTC' class='row'></td>
+				<td id='gainedDASH' class='row'></td>
+			</tr>
+		</table>
+	</div>
 </body>
 <script>
+
+	// set an empty object to store the rates that are fetched
+	let rates = {};
 
 	// create promise that can fetch the different exchange rates from Bittrex
 	getBittrexRate = (param) => {
@@ -53,6 +74,12 @@
 	// Btce exchange rates can be got from one call
 	getBtceRates = () => {
 		return axios.get('https://btc-e.com/api/3/ticker/eth_btc-ltc_btc-dsh_btc');
+	}
+
+	calculateGain = (altcoin) => {
+		// calculate the extra amount gained by using the better rate
+		const gain = Math.abs(rates.btce[altcoin] - rates.bittrex[altcoin]);
+		$('#gained' + altcoin).html(round(gain * $('#amount').val()));
 	}
 
 	// execute to grab all exchange rates
@@ -72,9 +99,6 @@
 		reciprocalAndRound = (val) => {
 			return round(1 / round(val));
 		}
-
-		// set an empty object to store the rates that are fetched
-		let rates = {};
 
 		// once we have the exchange rates, create a sub object to store the bittrex rates in
 		rates['bittrex']={};
@@ -109,6 +133,14 @@
 			} else if (rates.btce[altcoin] < rates.bittrex[altcoin]) {
 				$('#bittrex' + altcoin).css('color','orange');
 			}
+
+			calculateGain(altcoin);
+		}
+	});
+
+	$('#calculateGain').click(function() {
+		for (let altcoin of ['ETH', 'LTC', 'DASH']) {
+			calculateGain(altcoin);
 		}
 	});
 </script>
