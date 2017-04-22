@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ShapeShift Code Test</title>
+	<script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+	 <!-- JQuery CDN -->
+	<script
+		src="https://code.jquery.com/jquery-3.1.0.js"
+		integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="
+		crossorigin="anonymous">
+	</script>
+	<link rel='stylesheet' type='text/css' href='jquery.css'>
+</head>
+<body>
+
+	<div>
+		<h2>Exchange Rates</h2>
+		<p>The following is how many of each altcoin you can get for one bitcoin</p>
+		<p>The rates for each exchange are listed in each row</p>
+		<table>
+			<tr>
+				<th class='row'></th>
+				<th class='row'>ETH</th>
+				<th class='row'>LTC</th>
+				<th class='row'>DASH</th>
+			</tr>
+			<tr class='row'>
+				<td class='row'>Bittrex</td>
+				<td id='bittrexETH' class='row'></td>
+				<td id='bittrexLTC' class='row'></td>
+				<td id='bittrexDASH' class='row'></td>
+			</tr>
+			<tr class='row'>
+			<tr>
+			<tr class='row'>
+				<td class='row'>BTCE</td>
+				<td id='btceETH' class='row'></td>
+				<td id='btceLTC' class='row'></td>
+				<td id='btceDASH' class='row'></td>
+			</tr>
+		</table>
+	</div>
+	<hr>
+	<div>
+		Please enter amount of Bitcoin you will exchange, and below will show how much more of the altcoin will be received from the highlighted exchange.
+		<br><br>
+		Input amount of Bitcoin:
+		<br>
+		<input id='amount'></input>
+		<button id='calculateGain'>Calculate</button>
+	</div>
+	<br>
+	<div>
+		<table>
+			<tr class='row'>
+				<td class='row'>Amount Gained:</td>
+				<td id='gainedETH' class='row'></td>
+				<td id='gainedLTC' class='row'></td>
+				<td id='gainedDASH' class='row'></td>
+			</tr>
+		</table>
+	</div>
+</body>
+<script src="mvc.js"></script>
+</html>
