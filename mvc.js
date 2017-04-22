@@ -103,7 +103,6 @@ function Controller(m) {
 			getBtceRates('eth'),
 			getBtceRates('ltc'),
 			getBtceRates('dsh')
-			// getBtceRates()
 		]).then(values => {
 			// once we have all the exchange rates in the values function, we want to store them, display them on the screen, and then compare and highlight the best rate.
 
@@ -129,11 +128,9 @@ function Controller(m) {
 			}
 			if (values[1].status == 200) {
 				bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
-
 			}
 			if (values[2].status == 200) {
 				bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
-
 			}
 			if (values[3].status == 200) {
 				btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
@@ -147,17 +144,36 @@ function Controller(m) {
 			m.rates.rates.push(bittrex);
 			m.rates.rates.push(btce);
 
+			// check for best rate and highlight. If rates are equal, do not highlight any.
+			// first, cycle through each altcoin
 			for (let altcoin of m.altcoins.altcoins) {
-				// check for best rate and highlight. If rates are equal, do not highlight either
-				if (m.rates.rates[0][altcoin] > m.rates.rates[1][altcoin]) {
-					m.rates.rates[0][altcoin + 'best'] = true;
-				} else if (m.rates.rates[0][altcoin] < m.rates.rates[1][altcoin]) {
-					m.rates.rates[1][altcoin + 'best'] = true;
+				// set bestIndex  to store the index of the highest value. Start with it as null. If it gets through all the values and is still null, then all values are equal
+				let bestIndex;
+				// cycle through the list, starting at second in the list
+				for (i = 1; i < m.rates.rates.length; i++) {
+					// if there is a current bestIndex, then compare the current item in the list to bestIndex. If this value is higher, then set it as the bestIndex
+					if (bestIndex) {
+						if (m.rates.rates[i][altcoin] > m.rates.rates[bestIndex][altcoin]) {
+							bestIndex = i;
+						}
+					} else {
+						// if there is not currently a best index set, then compare this value to the previous value in the list. If one of the two is higher than the other, then set that value as the bestIndex
+						if (m.rates.rates[i][altcoin] > m.rates.rates[i-1][altcoin]) {
+							bestIndex = i;
+						} else if (m.rates.rates[i-1][altcoin] > m.rates.rates[i][altcoin]) {
+							bestIndex = i-1;
+						}
+					}
 				}
-			}
-			console.log('before callback: ', m.rates);
 
-			// need a callback to call calculateGains from View
+				// if there is bestIndex set, then set a key/value pair in the object so it will be highlighted by the View
+				if (bestIndex || bestIndex == 0) {
+					m.rates.rates[bestIndex][altcoin + 'best'] = true;
+				}
+
+			}
+
+			// callback to the view, passing the items from the model that are used to display to the user
 			callback(m.rates.rates, m.altcoins.altcoins);
 		});
 	}
