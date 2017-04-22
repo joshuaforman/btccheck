@@ -18,7 +18,7 @@
 	</div>
 	<div>
 		<h2>Exchange Rates</h2>
-		<p>The following is how many bitcoins it will take for each altcoin</p>
+		<p>The following is how many of each altcoin you can get for one bitcoin</p>
 		<p>The rates for each exchange are listed in each row</p>
 		<table>
 			<tr>
@@ -44,30 +44,6 @@
 		</table>
 </body>
 <script>
-	$("#amount").blur(function() {
-		btc = $("#amount").val();
-		const rateArray = [];
-		// getBtceRates().then((res) => {
-		// 	console.log(res);
-		// });
-
-		getPoloniexRates().then((resP) => {
-			console.log(resP);
-			rateArray['ETH'] = resP.data.BTC_ETH.buy;
-			rateArray['LTC'] = resP.data.BTC_LTC.buy;
-			rateArray['DASH'] = resP.data.BTC_DASH.buy;
-		}).then(getBtceRates().then((resB) => {
-			console.log('in bitterx: ', resB);
-			console.log('rateArray: ', rateArray);
-		}))
-		.catch((err) => {
-			console.log('error: ', err);
-		});
-
-	});
-
-	// set an empty object to store the rates that are fetched
-	let rates = {};
 
 	// create promise that can fetch the different exchange rates from Bittrex
 	getBittrexRate = (param) => {
@@ -86,40 +62,53 @@
 		getBittrexRate('dash'),
 		getBtceRates()
 	]).then(values => {
+		// once we have all the exchange rates in the values function, we want to store them, display them on the screen, and then compare and highlight the best rate.
+
 		// function to round a number to 5 decimal placese. That is how BTCE returns its exchange rate, and Bittrex returns 8 decimal places. So, normalizing on 5
 		round = (val) => {
 			return Math.round(val * 100000) / 100000;
 		}
+
+		reciprocalAndRound = (val) => {
+			return round(1 / round(val));
+		}
+
+		// set an empty object to store the rates that are fetched
+		let rates = {};
+
 		// once we have the exchange rates, create a sub object to store the bittrex rates in
 		rates['bittrex']={};
+
+		// for each value, first check for status 200, signifying that the rate was properly returned. For each value, take the reciprocal so we can show how many of the altcoin can be exchanged for each bitcoin.
 		if (values[0].status == 200) {
-			rates.bittrex.eth = round(values[0].data.result[0].Ask);
+			rates.bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
 		}
 		if (values[1].status == 200) {
-			rates.bittrex.ltc = round(values[1].data.result[0].Ask);
+			rates.bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
 		}
 		if (values[2].status == 200) {
-			rates.bittrex.dash = round(values[2].data.result[0].Ask);
+			rates.bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
 		}
 		if (values[3].status == 200) {
-			// if the btce call came back successfully, create a sub object to store the btce exchange rates in
+			// if the btce call came back successfully, create a sub object to store the btce exchange rates in. Remember, we were able to do the btce calls with one call, and the api returned all three values we needed.
 			rates['btce']={};
-			rates.btce.eth = round(values[3].data.eth_btc.buy);
-			rates.btce.ltc  = round(values[3].data.ltc_btc.buy);
-			rates.btce.dash = round(values[3].data.dsh_btc.buy);
+			rates.btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
+			rates.btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
+			rates.btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
 		}
-		console.log('rates', rates);
-		$('#bittrexETH').html(rates.bittrex.eth);
-		$('#bittrexLTC').html(rates.bittrex.ltc);
-		$('#bittrexDASH').html(rates.bittrex.dash);
-		$('#btceETH').html(rates.btce.eth);
-		$('#btceLTC').html(rates.btce.ltc);
-		$('#btceDASH').html(rates.btce.dash);
+
+		// cycle through each of the altcoins being compared
+		for (let altcoin of ['ETH', 'LTC', 'DASH']) {
+			// set the values on the webpage
+			$('#bittrex' + altcoin).html(rates.bittrex[altcoin]);
+			$('#btce' + altcoin).html(rates.btce[altcoin]);
+
+			// check for best rate and highlight. If rates are equal, do not highlight either
+			if (rates.btce[altcoin] > rates.bittrex[altcoin]) {
+				$('#btce' + altcoin).css('color','orange');
+			} else if (rates.btce[altcoin] < rates.bittrex[altcoin]) {
+				$('#bittrex' + altcoin).css('color','orange');
+			}
+		}
 	});
-
-
-
-
-
-
 </script>
