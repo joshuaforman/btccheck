@@ -9,12 +9,29 @@
 		integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="
 		crossorigin="anonymous">
 	</script>
+	<link rel='stylesheet' type='text/css' href='jquery.css'>
 </head>
 <body>
 	<div>
 		Input amount of Bitcoin:
 		<input id='amount' value=20></input>
 	</div>
+	<div>
+		<h2>Exchange Rates</h2>
+		<table>
+			<tr>
+				<th class='row'></th>
+				<th class='row'>ETH</th>
+				<th class='row'>LTC</th>
+				<th class='row'>DASH</th>
+			</tr>
+			<tr class='row'>
+				<td class='row'>Bittrex</td>
+				<td id='bittrexETH' class='row'></td>
+				<td id='bittrexLTC' class='row'></td>
+				<td id='bittrexDASH' class='row'></td>
+			</tr>
+		</table>
 </body>
 <script>
 	$("#amount").blur(function() {
@@ -78,6 +95,9 @@
 			rates.btce.dash = values[3].data.dsh_btc.buy;
 		}
 		console.log('rates', rates);
+		$('#bittrexETH').html(rates.bittrex.eth);
+		$('#bittrexLTC').html(rates.bittrex.ltc);
+		$('#bittrexDASH').html(rates.bittrex.dash);
 	});
 
 
