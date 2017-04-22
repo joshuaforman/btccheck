@@ -18,6 +18,8 @@
 	</div>
 	<div>
 		<h2>Exchange Rates</h2>
+		<p>The following is how many bitcoins it will take for each altcoin</p>
+		<p>The rates for each exchange are listed in each row</p>
 		<table>
 			<tr>
 				<th class='row'></th>
@@ -30,6 +32,14 @@
 				<td id='bittrexETH' class='row'></td>
 				<td id='bittrexLTC' class='row'></td>
 				<td id='bittrexDASH' class='row'></td>
+			</tr>
+			<tr class='row'>
+			<tr>
+			<tr class='row'>
+				<td class='row'>BTCE</td>
+				<td id='btceETH' class='row'></td>
+				<td id='btceLTC' class='row'></td>
+				<td id='btceDASH' class='row'></td>
 			</tr>
 		</table>
 </body>
@@ -76,28 +86,35 @@
 		getBittrexRate('dash'),
 		getBtceRates()
 	]).then(values => {
+		// function to round a number to 5 decimal placese. That is how BTCE returns its exchange rate, and Bittrex returns 8 decimal places. So, normalizing on 5
+		round = (val) => {
+			return Math.round(val * 100000) / 100000;
+		}
 		// once we have the exchange rates, create a sub object to store the bittrex rates in
 		rates['bittrex']={};
 		if (values[0].status == 200) {
-			rates.bittrex.eth = values[0].data.result[0].Ask;
+			rates.bittrex.eth = round(values[0].data.result[0].Ask);
 		}
 		if (values[1].status == 200) {
-			rates.bittrex.ltc = values[1].data.result[0].Ask;
+			rates.bittrex.ltc = round(values[1].data.result[0].Ask);
 		}
 		if (values[2].status == 200) {
-			rates.bittrex.dash = values[2].data.result[0].Ask;
+			rates.bittrex.dash = round(values[2].data.result[0].Ask);
 		}
 		if (values[3].status == 200) {
 			// if the btce call came back successfully, create a sub object to store the btce exchange rates in
 			rates['btce']={};
-			rates.btce.eth = values[3].data.eth_btc.buy;
-			rates.btce.ltc  = values[3].data.ltc_btc.buy;
-			rates.btce.dash = values[3].data.dsh_btc.buy;
+			rates.btce.eth = round(values[3].data.eth_btc.buy);
+			rates.btce.ltc  = round(values[3].data.ltc_btc.buy);
+			rates.btce.dash = round(values[3].data.dsh_btc.buy);
 		}
 		console.log('rates', rates);
 		$('#bittrexETH').html(rates.bittrex.eth);
 		$('#bittrexLTC').html(rates.bittrex.ltc);
 		$('#bittrexDASH').html(rates.bittrex.dash);
+		$('#btceETH').html(rates.btce.eth);
+		$('#btceLTC').html(rates.btce.ltc);
+		$('#btceDASH').html(rates.btce.dash);
 	});
 
 
