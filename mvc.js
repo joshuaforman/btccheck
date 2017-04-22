@@ -1,6 +1,6 @@
 
 function Rates() {
-	this.rates = {};
+	this.rates = [];
 }
 
 function Amount() {
@@ -34,14 +34,34 @@ function View(c) {
 	});
 
 	// This is the function to calculate the gains made if you take the best exchange rate. It calls the controller to calculate the gains, and passes the data back to here, to update the view.
-	calculateGains = () => {
+	calculateGains = (altcoinRates) => {
+		console.log('in calcgains ', altcoinRates);
+		if (altcoinRates) {
+			// cycle through each of the altcoins being compared
+			// try {
+				// for (let altcoin of altcoinRates) {
+					// console.log(altcoin);
+					// set the values on the webpage
+					// $('#bittrex' + altcoin).html(m.rates.bittrex[altcoin]);
+					// $('#btce' + altcoin).html(m.rates.btce[altcoin]);
+
+					// // check for best rate and highlight. If rates are equal, do not highlight either
+					// if (m.rates.btce[altcoin] > m.rates.bittrex[altcoin]) {
+					// 	$('#btce' + altcoin).css('color','orange');
+					// } else if (m.rates.btce[altcoin] < m.rates.bittrex[altcoin]) {
+					// 	$('#bittrex' + altcoin).css('color','orange');
+					// }
+				// }
+			// } catch(TypeError) {
+			// 	// ignore error
+			// }
+		}
 		gains = c.calculateGains();
 		for (let gain of gains) {
-			console.log(gain);
 			$('#gained' + gain.altcoin).html(round(gain.gain * $('#amount').val()));
 		}
 	}
-}
+} //end View
 
 function Controller(m) {
 	this.getAmount = () => {
@@ -61,7 +81,6 @@ function Controller(m) {
 			}
 			gains.push(newObj);
 		}
-		console.log('gainArray: ', gains);
 		// send array with gains info bace to view to display
 		return gains;
 	}
@@ -95,42 +114,44 @@ function Controller(m) {
 			}
 
 			// once we have the exchange rates, create a sub object to store the bittrex rates in
-			m.rates['bittrex']={};
+			// m.rates['bittrex']={};
+			let bittrex = {};
+			let btce = {};
+			bittrex.altcoin = 'bittrex';
+			btce.altcoin='btce';
 
 			// for each value, first check for status 200, signifying that the rate was properly returned. For each value, take the reciprocal so we can show how many of the altcoin can be exchanged for each bitcoin.
 			if (values[0].status == 200) {
-				m.rates.bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
+				// m.rates.bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
+				bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
 			}
 			if (values[1].status == 200) {
-				m.rates.bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
+				// m.rates.bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
+				bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
+
 			}
 			if (values[2].status == 200) {
-				m.rates.bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
+				// m.rates.bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
+				bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
+
 			}
 			if (values[3].status == 200) {
 				// if the btce call came back successfully, create a sub object to store the btce exchange rates in. Remember, we were able to do the btce calls with one call, and the api returned all three values we needed.
-				m.rates['btce']={};
-				m.rates.btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
-				m.rates.btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
-				m.rates.btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
-			}
+				// m.rates['btce']={};
 
-			// cycle through each of the altcoins being compared
-			for (let altcoin of ['ETH', 'LTC', 'DASH']) {
-				// set the values on the webpage
-				$('#bittrex' + altcoin).html(m.rates.bittrex[altcoin]);
-				$('#btce' + altcoin).html(m.rates.btce[altcoin]);
-
-				// check for best rate and highlight. If rates are equal, do not highlight either
-				if (m.rates.btce[altcoin] > m.rates.bittrex[altcoin]) {
-					$('#btce' + altcoin).css('color','orange');
-				} else if (m.rates.btce[altcoin] < m.rates.bittrex[altcoin]) {
-					$('#bittrex' + altcoin).css('color','orange');
-				}
+				// m.rates.btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
+				// m.rates.btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
+				// m.rates.btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
+				btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
+				btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
+				btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
 			}
+			console.log('bittrex', bittrex);
+			m.rates.rates.push(bittrex);
+			m.rates.rates.push(btce);
 
 			// need a callback to call calculateGains from View
-			callback();
+			callback(m.rates);
 		});
 	}
 }
