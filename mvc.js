@@ -35,49 +35,26 @@ function View(c) {
 
 	// This is the function to calculate the gains made if you take the best exchange rate. It calls the controller to calculate the gains, and passes the data back to here, to update the view.
 	calculateGains = (rates, altcoins) => {
-		console.log('in calcgains ', rates[0]);
+		console.log('in calcgains ', rates);
 		if (rates) {
 			// if rates were just calculated, they need to be shown on the screen, so pass them into this function
 			for (let altcoin of altcoins) {
 				for (let rate of rates) {
 					// set the values on the webpage
 					$('#' + rate.exchange + altcoin).html(rate[altcoin]);
-				}
 
-				// check for best rate and highlight. If rates are equal, do not highlight either
-				if (rates[0][altcoin] > rates[1][altcoin]) {
-					$('#' + rates[0].exchange + altcoin).css('color','orange');
-				} else if (rates[0][altcoin] < rates[1][altcoin]) {
-					$('#' + rates[1].exchange + altcoin).css('color','orange');
+					// if this key exists in this object, then it was found to have the best exchange rate, so highlight it
+					if (rate[altcoin + 'best']) {
+						$('#' + rate.exchange + altcoin).css('color','orange');
+					}
 				}
 			}
-
-/*
-			let exchanges = [];
-			for (let rate of rates) {
-				exchanges.push(rate.exchange);
-			}
-			console.log('exchanges: ', exchanges);
-
-			for (let exchange of exchanges) {
-				for (let altcoin of altcoins) {
-					console.log(exchange, altcoin, rates);
-					// set the values on the webpage
-					// $('#' + exchange + altcoin).html(altcoin.);
-					// $('#btce' + altcoin.altcoin).html(m.rates.btce[altcoin]);
-
-					// // check for best rate and highlight. If rates are equal, do not highlight either
-					// if (m.rates.btce[altcoin] > m.rates.bittrex[altcoin]) {
-					// 	$('#btce' + altcoin.altcoin).css('color','orange');
-					// } else if (m.rates.btce[altcoin] < m.rates.bittrex[altcoin]) {
-					// 	$('#bittrex' + altcoin.altcoin).css('color','orange');
-				}
-			}
-*/
 		}
 
+		// get the values for how much is gained if you use the best rate
 		gains = c.calculateGains();
 		for (let gain of gains) {
+			// display the gains amounts
 			$('#gained' + gain.altcoin).html(round(gain.gain * $('#amount').val()));
 		}
 	}
@@ -110,8 +87,11 @@ function Controller(m) {
 	}
 
 	// Btce exchange rates can be got from one call
-	getBtceRates = () => {
-		return axios.get('https://btc-e.com/api/3/ticker/eth_btc-ltc_btc-dsh_btc');
+	// getBtceRates = () => {
+	// 	return axios.get('https://btc-e.com/api/3/ticker/eth_btc-ltc_btc-dsh_btc');
+	// }
+	getBtceRates = (param) => {
+		return axios.get('https://btc-e.com/api/3/ticker/' + param + '_btc')
 	}
 
 	this.execute = (callback) => {
@@ -120,7 +100,10 @@ function Controller(m) {
 			getBittrexRate('eth'),
 			getBittrexRate('ltc'),
 			getBittrexRate('dash'),
-			getBtceRates()
+			getBtceRates('eth'),
+			getBtceRates('ltc'),
+			getBtceRates('dsh')
+			// getBtceRates()
 		]).then(values => {
 			// once we have all the exchange rates in the values function, we want to store them, display them on the screen, and then compare and highlight the best rate.
 
@@ -133,41 +116,46 @@ function Controller(m) {
 				return round(1 / round(val));
 			}
 
-			// once we have the exchange rates, create a sub object to store the bittrex rates in
-			// m.rates['bittrex']={};
+			// once we have the exchange rates, create objects to store the rates from the exchanges from. Once popluated with data, the objects will be pushed onto the m.rates array
 			let bittrex = {};
-			let btce = {};
 			bittrex.exchange = 'bittrex';
+
+			let btce = {};
 			btce.exchange ='btce';
 
 			// for each value, first check for status 200, signifying that the rate was properly returned. For each value, take the reciprocal so we can show how many of the altcoin can be exchanged for each bitcoin.
 			if (values[0].status == 200) {
-				// m.rates.bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
 				bittrex.ETH = reciprocalAndRound(values[0].data.result[0].Ask);
 			}
 			if (values[1].status == 200) {
-				// m.rates.bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
 				bittrex.LTC = reciprocalAndRound(values[1].data.result[0].Ask);
 
 			}
 			if (values[2].status == 200) {
-				// m.rates.bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
 				bittrex.DASH = reciprocalAndRound(values[2].data.result[0].Ask);
 
 			}
 			if (values[3].status == 200) {
-				// if the btce call came back successfully, create a sub object to store the btce exchange rates in. Remember, we were able to do the btce calls with one call, and the api returned all three values we needed.
-				// m.rates['btce']={};
-
-				// m.rates.btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
-				// m.rates.btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
-				// m.rates.btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
 				btce.ETH = reciprocalAndRound(values[3].data.eth_btc.buy);
-				btce.LTC  = reciprocalAndRound(values[3].data.ltc_btc.buy);
-				btce.DASH = reciprocalAndRound(values[3].data.dsh_btc.buy);
+			}
+			if (values[4].status == 200) {
+				btce.LTC  = reciprocalAndRound(values[4].data.ltc_btc.buy);
+			}
+			if (values[5].status == 200) {
+				btce.DASH = reciprocalAndRound(values[5].data.dsh_btc.buy);
 			}
 			m.rates.rates.push(bittrex);
 			m.rates.rates.push(btce);
+
+			for (let altcoin of m.altcoins.altcoins) {
+				// check for best rate and highlight. If rates are equal, do not highlight either
+				if (m.rates.rates[0][altcoin] > m.rates.rates[1][altcoin]) {
+					m.rates.rates[0][altcoin + 'best'] = true;
+				} else if (m.rates.rates[0][altcoin] < m.rates.rates[1][altcoin]) {
+					m.rates.rates[1][altcoin + 'best'] = true;
+				}
+			}
+			console.log('before callback: ', m.rates);
 
 			// need a callback to call calculateGains from View
 			callback(m.rates.rates, m.altcoins.altcoins);
