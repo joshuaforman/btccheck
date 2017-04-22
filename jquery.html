@@ -13,41 +13,76 @@
 <body>
 	<div>
 		Input amount of Bitcoin:
-		<input id='amount'></input>
+		<input id='amount' value=20></input>
 	</div>
 </body>
 <script>
-
 	$("#amount").blur(function() {
 		btc = $("#amount").val();
-
+		const rateArray = [];
 		// getBtceRates().then((res) => {
 		// 	console.log(res);
 		// });
 
 		getPoloniexRates().then((resP) => {
-			const rateArray = [];
-			rateArray['ETH'] = resP.data.BTC_ETH.last;
-			rateArray['LTC'] = resP.data.BTC_LTC.last;
-			rateArray['DASH'] = resP.data.BTC_DASH.last;
+			console.log(resP);
+			rateArray['ETH'] = resP.data.BTC_ETH.buy;
+			rateArray['LTC'] = resP.data.BTC_LTC.buy;
+			rateArray['DASH'] = resP.data.BTC_DASH.buy;
+		}).then(getBtceRates().then((resB) => {
+			console.log('in bitterx: ', resB);
 			console.log('rateArray: ', rateArray);
-			getBtceRates().then((resB) => {
-				console.log('in bitterx: ', resB);
-			});
-		})
+		}))
 		.catch((err) => {
 			console.log('error: ', err);
 		});
 
 	});
 
-	getPoloniexRates = () => {
-		return axios.get('https://poloniex.com/public?command=returnTicker');
+	// set an empty object to store the rates that are fetched
+	let rates = {};
+
+	// create promise that can fetch the different exchange rates from Bittrex
+	getBittrexRate = (param) => {
+		return axios.get('https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-' + param);
 	}
 
+	// Btce exchange rates can be got from one call
 	getBtceRates = () => {
 		return axios.get('https://btc-e.com/api/3/ticker/eth_btc-ltc_btc-dsh_btc');
 	}
+
+	// execute to grab all exchange rates
+	Promise.all([
+		getBittrexRate('eth'),
+		getBittrexRate('ltc'),
+		getBittrexRate('dash'),
+		getBtceRates()
+	]).then(values => {
+		// once we have the exchange rates, create a sub object to store the bittrex rates in
+		rates['bittrex']={};
+		if (values[0].status == 200) {
+			rates.bittrex.eth = values[0].data.result[0].Ask;
+		}
+		if (values[1].status == 200) {
+			rates.bittrex.ltc = values[1].data.result[0].Ask;
+		}
+		if (values[2].status == 200) {
+			rates.bittrex.dash = values[2].data.result[0].Ask;
+		}
+		if (values[3].status == 200) {
+			// if the btce call came back successfully, create a sub object to store the btce exchange rates in
+			rates['btce']={};
+			rates.btce.eth = values[3].data.eth_btc.buy;
+			rates.btce.ltc  = values[3].data.ltc_btc.buy;
+			rates.btce.dash = values[3].data.dsh_btc.buy;
+		}
+		console.log('rates', rates);
+	});
+
+
+
+
 
 
 </script>
